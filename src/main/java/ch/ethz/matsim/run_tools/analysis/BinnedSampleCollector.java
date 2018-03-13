@@ -2,17 +2,17 @@ package ch.ethz.matsim.run_tools.analysis;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class BinnedSampleCollector {
 	final private List<Double> right;
-	final private List<List<Double>> samples = new LinkedList<>();
-	private double total = 0.0;
+	final private List<Double> samples = new LinkedList<>();
 
 	public BinnedSampleCollector(List<Double> right) {
 		this.right = right;
 
 		for (int i = 0; i < right.size(); i++) {
-			samples.add(new LinkedList<>());
+			samples.add(0.0);
 		}
 	}
 
@@ -24,18 +24,16 @@ public class BinnedSampleCollector {
 		}
 
 		if (index < right.size()) {
-			samples.get(index).add(sample);
-			total += sample;
+			samples.set(index, samples.get(index) + 1.0);
 		}
 	}
 
-	public List<Double> build() {
-		List<Double> bins = new LinkedList<>();
+	public List<Double> buildAbsoluteFrequencies() {
+		return samples;
+	}
 
-		for (List<Double> binSamples : samples) {
-			bins.add(binSamples.stream().mapToDouble(d -> d).sum() / total);
-		}
-
-		return bins;
+	public List<Double> buildRelativeFrequencies() {
+		double total = samples.stream().mapToDouble(d -> d).sum();
+		return samples.stream().map(d -> d / total).collect(Collectors.toList());
 	}
 }

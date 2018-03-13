@@ -13,6 +13,7 @@ import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 import ch.ethz.matsim.run_tools.framework.run.RunEnvironment;
 import ch.ethz.matsim.run_tools.framework.simulation.SimulationDescription;
@@ -39,12 +40,17 @@ public class SPSAEnvironment {
 	final private int numberOfSimulationIterations;
 	final private int intermediateObjectiveInterval;
 	final private List<Double> initialCandidate;
+	
+	final private ObjectMapper objectMapper;
 
 	public SPSAEnvironment(RunEnvironment runEnvironment, SimulationEnvironment simulationEnvironment,
 			SPSAObjective objective, SPSASampler sampler, SPSAProjection projection,
 			SPSADescriptionFactory descriptionFactory, SPSASequence sequence, String prefix,
 			List<Double> initialCandidate, int numberOfSimulationIterations, int intermediateObjectiveInterval)
 			throws JsonParseException, JsonMappingException, IOException {
+		this.objectMapper = new ObjectMapper();
+		objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+		
 		this.simulationEnvironment = simulationEnvironment;
 		this.calibrationFile = runEnvironment.getRootDirectory().resolveFile(prefix + "_spsa.json");
 		this.prefix = prefix;
@@ -63,7 +69,7 @@ public class SPSAEnvironment {
 		this.logger = Logger.getLogger("SPSA " + prefix);
 
 		if (calibrationFile.exists()) {
-			state = new ObjectMapper().readValue(calibrationFile.getContent().getInputStream(), State.class);
+			state = objectMapper.readValue(calibrationFile.getContent().getInputStream(), State.class);
 			logger.info("Initialized SPSA from " + calibrationFile.getName().getPath());
 		} else {
 			state = new State();
@@ -76,7 +82,7 @@ public class SPSAEnvironment {
 	}
 
 	private void save() throws JsonGenerationException, JsonMappingException, FileSystemException, IOException {
-		new ObjectMapper().writeValue(calibrationFile.getContent().getOutputStream(), state);
+		objectMapper.writeValue(calibrationFile.getContent().getOutputStream(), state);
 	}
 
 	private List<Double> buildPerturbation() {
@@ -301,8 +307,8 @@ public class SPSAEnvironment {
 	private static class State {
 		public List<SPSAIteration> iterations = new LinkedList<>();
 
-		int lastObjectiveIteration;
-		int lastFirstGradientIteration;
-		int lastSecondGradientIteration;
+		public int lastObjectiveIteration;
+		public int lastFirstGradientIteration;
+		public int lastSecondGradientIteration;
 	}
 }
