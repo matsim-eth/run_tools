@@ -14,6 +14,8 @@ public class BinnedSampleCollector {
 		for (int i = 0; i < right.size(); i++) {
 			samples.add(0.0);
 		}
+
+		samples.add(0.0);
 	}
 
 	public void addSample(double sample) {
@@ -23,7 +25,7 @@ public class BinnedSampleCollector {
 			index++;
 		}
 
-		if (index < right.size()) {
+		if (index < samples.size()) {
 			samples.set(index, samples.get(index) + 1.0);
 		}
 	}
